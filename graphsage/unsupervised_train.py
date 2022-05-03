@@ -111,10 +111,27 @@ def save_val_embeddings(sess, model, minibatch_iter, size, out_dir, mod=""):
                 seen.add(edge[0])
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
+    '''
     val_embeddings = np.vstack(val_embeddings)
-    np.save(out_dir + name + mod + ".npy",  val_embeddings)
+    np.save(out_dir + name + mod + ".txt",  val_embeddings)
     with open(out_dir + name + mod + ".txt", "w") as fp:
-        fp.write("\n".join(map(str,nodes)))
+    fp.write("\n".join(map(str,nodes)))
+    '''
+    path = out_dir + name + mod + ".txt"
+    writer = open(path, 'w')
+    node_dim = len(val_embeddings)
+    emb_size = len(val_embeddings[0])
+
+    writer.write('%d %d\n' % (node_dim, emb_size))
+    for n_idx in range(node_dim):
+        writer.write(str(nodes[n_idx]) + ' ' + ' '.join(str(d) for d in val_embeddings[n_idx]) + '\n')
+    writer.close()
+    '''
+    writer = open(path, 'w')
+    writer.write('%d %d\n' % (self.node_dim, self.emb_size))
+    for n_idx in range(self.node_dim):
+        writer.write(str(n_idx) + ' ' + ' '.join(str(d) for d in embeddings[n_idx]) + '\n')
+    '''
 
 def construct_placeholders():
     # Define placeholders
