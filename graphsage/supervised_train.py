@@ -120,12 +120,10 @@ def save_val_embeddings(sess, model, minibatch_iter, size, out_dir, mod=""):
         feed_dict_val, batch_labels, finished, raw_nodes = minibatch_iter.incremental_embed_feed_dict(size, iter_num)
         iter_num += 1
         outs_val = sess.run([model.outputs1], feed_dict=feed_dict_val)
-        print(raw_nodes)
         # ONLY SAVE FOR embeds1 because of parallel of unsupervised version
         for i, node in enumerate(raw_nodes):
             if not node in seen:
                 val_embeddings.append(outs_val[-1][i, :])
-                print("i = ",i, " node = ", node)
                 nodes.append(node)
                 seen.add(node)
 
