@@ -109,6 +109,40 @@ def incremental_evaluate(sess, model, minibatch_iter, size, test=False):
     f1_scores = calc_f1(labels, val_preds)
     return np.mean(val_losses), f1_scores[0], f1_scores[1], (time.time() - t_test)
 
+def save_val_embeddings(sess, model, minibatch_iter, size, out_dir, mod=""):
+    val_embeddings = []
+    finished = False
+    seen = set([])
+    nodes = []
+    iter_num = 0
+    name = "val"
+    while not finished:
+        feed_dict_val, batch_labels, finished, raw_nodes = minibatch_iter.incremental_embed_feed_dict(size, iter_num)
+        iter_num += 1
+        outs_val = sess.run([model.outputs1], feed_dict=feed_dict_val)
+        print(raw_nodes)
+        # ONLY SAVE FOR embeds1 because of parallel of unsupervised version
+        for i, node in enumerate(raw_nodes):
+            if not node in seen:
+                val_embeddings.append(outs_val[-1][i, :])
+                print("i = ",i, " node = ", node)
+                nodes.append(node)
+                seen.add(node)
+
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+
+    path = out_dir + name + mod + ".txt"
+    writer = open(path, 'w')
+    node_dim = len(val_embeddings)
+    emb_size = len(val_embeddings[0])
+
+    writer.write('%d %d\n' % (node_dim, emb_size))
+    for n_idx in range(node_dim):
+        writer.write(str(nodes[n_idx]) + ' ' + ' '.join(str(d) for d in val_embeddings[n_idx]) + '\n')
+    writer.close()
+
+
 def construct_placeholders(num_classes):
     # Define placeholders
     placeholders = {
@@ -314,6 +348,7 @@ def train(train_data, test_data=None):
     print("Optimization Finished!")
     sess.run(val_adj_info.op)
     val_cost, val_f1_mic, val_f1_mac, duration = incremental_evaluate(sess, model, minibatch, FLAGS.batch_size)
+    save_val_embeddings(sess, model, minibatch, FLAGS.validate_batch_size, log_dir())
     print("Full validation stats:",
                   "loss=", "{:.5f}".format(val_cost),
                   "f1_micro=", "{:.5f}".format(val_f1_mic),

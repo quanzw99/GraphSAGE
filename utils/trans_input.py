@@ -64,10 +64,19 @@ def trans_G(G_file, id_map, links_list):
     graph_data["graph"] = {}
 
     # 将所有节点信息存储为包含test id val 的dict
-    # 所有test val 都设置为False
+    # 随机10%的test节点 随机10%的val节点
+    # 剩余所有test val 都设置为False
     nodes = []
+    iter = 0
     for key, value in id_map.items():
-        nodes.append({"test": False, "id": value, "val": False})
+        if iter % 10 == 0:
+            nodes.append({"test": True, "id": value, "val": False})
+        elif iter % 10 == 1:
+            nodes.append({"test": False, "id": value, "val": True})
+        else:
+            nodes.append({"test": False, "id": value, "val": False})
+        iter = iter + 1
+
     graph_data["nodes"] = nodes
 
     # links_list中实际也存储了包含source target的键值对
@@ -109,8 +118,7 @@ def trans_input(dataset_file, n2l_file, dataset_name):
             node_list.append(t_name)
             # 实际交互存为双向的
             links_list.append({"source": s_name, "target": t_name})
-            # links_list.append({"source": t_name, "target": s_name})
-
+            links_list.append({"source": t_name, "target": s_name})
 
     # 完成id_map转换
     id_map = trans_id_map(id_map_file, node_list)

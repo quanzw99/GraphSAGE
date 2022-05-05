@@ -310,7 +310,9 @@ class NodeMinibatchIterator(object):
         node_list = self.nodes
         val_nodes = node_list[iter_num*size:min((iter_num+1)*size, 
             len(node_list))]
-        return self.batch_feed_dict(val_nodes), (iter_num+1)*size >= len(node_list), val_nodes
+
+        ret_val = self.batch_feed_dict(val_nodes)
+        return ret_val[0], ret_val[1], (iter_num+1)*size >= len(node_list), val_nodes
 
     def shuffle(self):
         """ Re-shuffle the training set.
